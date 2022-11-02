@@ -27,48 +27,6 @@ def make_ground_truth_points(xi):
 
 
 
-def get_new_image(nrows,ncols,imm,bounds,transf_prec,nsamples):
-    '''Apply transformation H into the image to get the corrected image'''
-    # No clue how this works. Definitely need to brush up python image processing
-    # Copied directly
-    xx = np.linspace(1,ncols, ncols)
-    yy = np.linspace(1,nrows,nrows)
-    [xi,yi] = np.meshgrid(xx,yy)
-    a0 = np.reshape(xi,-1,order = "F")+bounds[2]
-    a1 = np.reshape(yi,-1,order = "F")+bounds[0]
-    a2 = np.ones((ncols*nrows))
-    uv = np.vstack((a0.T, a1.T, a2.T))
-    new_transf =np.dot(transf_prec,uv)
-    val_normalization =  np.vstack((new_transf[2,:],new_transf[2,:],new_transf[2,:]))
-
-    newT = new_transf/val_normalization
-
-    ## Review
-    xi = np.reshape(newT[0,:],(nrows,ncols),order = "F")
-    yi = np.reshape(newT[1,:],(nrows,ncols),order = "F")
-    cols = imm.shape[1]
-    rows = imm.shape[0]
-    xxq = np.linspace(1,rows,rows).astype(np.int64)
-    yyq = np.linspace(1,cols,cols).astype(np.int64)
-    [x,y] = np.meshgrid(yyq,xxq)
-    x = (x-1).astype(np.int64)
-    y = (y-1).astype(np.int64)
-
-    ix = np.random.randint(im.shape[1],size = nsamples)
-    iy = np.random.randint(im.shape[0],size = nsamples)
-    samples = im[iy,ix]
-    int_im = griddata((iy,ix),samples,(yi,xi))
-
-    #plotting
-    fig = plt.figure(figsize = (8,8))
-    columns = 2
-    rows = 1
-    fig.add_subplot(rows,columns,1)
-    plt.imshow(im)
-
-    fig.add_subplot(rows,columns,2)
-    plt.imshow(int_im.astype(np.uint8))
-    plt.show()
 if __name__ == "__main__":
     # Load image
     cwd = os.getcwd()
