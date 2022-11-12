@@ -146,17 +146,28 @@ if __name__ == "__main__":
     img_bounds = np.array([[-w//2, (w//2)-1, (w//2)-1, -w//2],[h//2,h//2,(-h//2)+1,(-h//2)+1],[1,1,1,1]])
     new_image_bounds = np.zeros(img_bounds.shape)
     for ii in range(4):
-        new_image_bounds[:,ii] = denormalized_H @ img_bounds[:,ii]
+        new_image_bounds_temp = denormalized_H @ img_bounds[:,ii]
+        new_image_bounds_temp = new_image_bounds_temp/new_image_bounds_temp[2] # divide by z
+        new_image_bounds[:,ii] = new_image_bounds_temp
+
+
+    
+
     xmin = np.amin(new_image_bounds[0])
+    xmax = np.amax(new_image_bounds[0])
+    ymin = np.amin(new_image_bounds[1])
     ymax = np.amax(new_image_bounds[1])
+
     #print(xmin)
+    #print(xmax)
+    #print(ymin)
     #print(ymax)
-    new_col = abs((2 * np.amax(abs(new_image_bounds[0])))).astype(int)
-    new_row = abs((2 * np.amax(abs(new_image_bounds[1])))).astype(int)
-    #print(new_col)
-    #print(new_row)
+    new_col = (xmax-xmin).astype(int)-1
+    new_row = (ymax-ymin).astype(int)-1
+    print(new_col)
+    print(new_row)
     #print(new_image_bounds)
-    new_image = np.zeros((new_row,new_col,3))
+    new_image = np.zeros((new_row+10,new_col+10,3))
     
     # Apply H to all points in coords_array?
     point_container = np.zeros((3,1))
@@ -165,21 +176,27 @@ if __name__ == "__main__":
         point_container[0] = coords_array[ii,0]
         point_container[1] = coords_array[ii,1]
         point_container[2] = 1
-        new_point = (denormalized_H @ point_container).T[0,0:2]
+        new_point_temp = (denormalized_H @ point_container)
+        new_point = (new_point_temp / new_point_temp[2]).T[0,0:2] # divide by z-coordinate
 
-        new_coli = ((new_point[0] - xmin)-1).astype(int)
-        new_rowi = ((ymax + new_point[1])-1).astype(int)
 
+        new_coli = ((new_point[0]+(new_col//2))-1).astype(int)
+        new_rowi = (((new_row//2) - new_point[1])-1).astype(int)
+        #print(new_coli)
+        #print(new_rowi)
+        #print(coords_array[ii,3].astype(int))
         new_image[new_rowi,new_coli] = im[coords_array[ii,3].astype(int),coords_array[ii,2].astype(int)]
 
 
         #new_coords_array[ii,0:2] = new_point[0,0:2]
     #print(new_coords_array)
     #print(np.max(new_coords_array))
-    new_final_image = np.fliplr(new_image)
-    plt.imshow((new_final_image).astype(np.uint8))
+    #new_final_image = np.fliplr(new_image)
+    plt.imshow((new_image).astype(np.uint8))
     plt.show()
-        
+    
+    corrected_image = Image.fromarray((new_image).astype(np.uint8))
+    #corrected_image.save(os.path.join(cwd,"images","book_corrected.jpg"))
     ######### YAW KO NAAAAAA ############
     
 
